@@ -1,0 +1,982 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pioneers Interactive Interface</title>
+    <style>
+      :root {
+        --ink: #17476f;
+        --muted: #6e9cb9;
+        --line: rgb(94 161 210 / 30%);
+        --accent: #2d9cf1;
+        --accent-dark: #1677bf;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 56%, rgb(226 246 255 / 20%), transparent 24%),
+          linear-gradient(180deg, #08090b 0%, #111 100%);
+        color: var(--ink);
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .shell {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        width: 920px;
+        height: 518px;
+        overflow: hidden;
+        transform: translate(-50%, -50%) scale(1);
+        background:
+          linear-gradient(90deg, rgb(216 239 255 / 88%) 0 30%, transparent 30% 76%, rgb(230 246 255 / 86%) 76%),
+          radial-gradient(circle at 55% 48%, #fff 0 9%, #dff3ff 29%, #cde9fb 52%, #b8d7ef 100%);
+        box-shadow: 0 28px 70px rgb(0 0 0 / 46%);
+      }
+
+      .shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(90deg, transparent 0 26%, rgb(255 255 255 / 44%) 32%, transparent 41%),
+          repeating-linear-gradient(90deg, transparent 0 82px, rgb(64 147 209 / 8%) 83px 84px),
+          radial-gradient(circle at 72% 16%, rgb(255 255 255 / 72%), transparent 22%);
+        pointer-events: none;
+      }
+
+      .left,
+      .right,
+      .stage {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+      }
+
+      .left {
+        left: 0;
+        width: 276px;
+        padding: 31px 21px 24px;
+        border-right: 1px solid var(--line);
+        background: linear-gradient(90deg, rgb(216 240 255 / 92%), rgb(224 244 255 / 70%));
+      }
+
+      .stage {
+        left: 276px;
+        width: 424px;
+        overflow: hidden;
+      }
+
+      .right {
+        right: 0;
+        width: 220px;
+        padding: 28px 17px 16px;
+        border-left: 1px solid var(--line);
+        background: linear-gradient(90deg, rgb(225 244 255 / 70%), rgb(237 250 255 / 95%));
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        color: #6ba9d8;
+        letter-spacing: 5px;
+        font-size: 20px;
+        font-weight: 800;
+      }
+
+      .brand-mark {
+        width: 24px;
+        height: 24px;
+        border: 3px solid #79b8e6;
+        clip-path: polygon(50% 0, 100% 88%, 0 88%);
+      }
+
+      .brand small {
+        display: block;
+        margin-top: 2px;
+        letter-spacing: 2px;
+        font-size: 7px;
+        font-weight: 700;
+      }
+
+      .creature-list {
+        display: grid;
+        gap: 11px;
+      }
+
+      .card {
+        width: 100%;
+        height: 78px;
+        display: grid;
+        grid-template-columns: 66px 1fr 24px;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 8px 8px 10px;
+        border: 1px solid rgb(131 178 213 / 28%);
+        border-radius: 9px;
+        background: rgb(244 251 255 / 70%);
+        color: inherit;
+        text-align: left;
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 80%);
+        cursor: pointer;
+        transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+      }
+
+      .card:hover,
+      .card:focus-visible {
+        transform: translateX(4px);
+        border-color: rgb(45 156 241 / 60%);
+        outline: none;
+      }
+
+      .card.active {
+        border-color: rgb(45 156 241 / 66%);
+        background: linear-gradient(90deg, rgb(226 246 255 / 96%), rgb(238 250 255 / 84%));
+        box-shadow: 0 0 0 3px rgb(45 156 241 / 10%), inset 0 1px 0 white;
+      }
+
+      .thumb {
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: linear-gradient(145deg, #eaf9ff, #bfe4fb);
+        color: #16496f;
+        font-size: 20px;
+        font-weight: 900;
+      }
+
+      .meta strong {
+        display: block;
+        color: #0d406a;
+        font-size: 13px;
+        letter-spacing: 1px;
+      }
+
+      .meta span {
+        color: #5e8bad;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+      }
+
+      .tag {
+        height: 55px;
+        display: grid;
+        place-items: center;
+        border-radius: 4px;
+        background: var(--accent);
+        color: white;
+        font-size: 7px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        writing-mode: vertical-rl;
+      }
+
+      .search {
+        position: absolute;
+        left: 20px;
+        right: 24px;
+        bottom: 16px;
+        height: 27px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 11px;
+        border-radius: 6px;
+        background: rgb(248 253 255 / 72%);
+        color: #85a8bf;
+        font-size: 8px;
+        font-weight: 700;
+      }
+
+      .search .bar {
+        margin-left: auto;
+        width: 72px;
+        height: 4px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #c7ddec;
+      }
+
+      .search .bar::before {
+        content: "";
+        display: block;
+        width: 78%;
+        height: 100%;
+        background: #5eaeea;
+      }
+
+      .title {
+        position: absolute;
+        top: 91px;
+        left: 22px;
+        z-index: 5;
+      }
+
+      .title h1 {
+        margin: 0;
+        color: var(--accent-dark);
+        font-size: 29px;
+        letter-spacing: 2px;
+        line-height: 1;
+        transition: color 220ms ease;
+      }
+
+      .title h1::before {
+        content: "+";
+        display: inline-grid;
+        place-items: center;
+        width: 22px;
+        height: 22px;
+        margin-right: 8px;
+        border: 2px solid #6ab2e4;
+        border-radius: 50%;
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .title .role {
+        margin: 7px 0 0 35px;
+        color: #7b9fba;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 1.4px;
+      }
+
+      .title p {
+        margin: 24px 0 0 48px;
+        color: #315e7d;
+        font-family: Georgia, serif;
+        font-size: 10px;
+        font-style: italic;
+      }
+
+      .specimen {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 78%;
+        height: 70%;
+        transform: translate(-47%, -38%);
+        transform-origin: 53% 70%;
+        filter: saturate(1.08) contrast(1.03);
+        cursor: pointer;
+        border-radius: 40%;
+        touch-action: none;
+      }
+
+      .specimen canvas {
+        position: absolute;
+        inset: -8% -6% -5% -8%;
+        width: 114%;
+        height: 113%;
+        outline: none;
+      }
+
+      .specimen::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(90deg, rgb(218 240 255 / 32%) 0 7%, transparent 22% 76%, rgb(226 246 255 / 38%) 92%),
+          linear-gradient(180deg, rgb(219 240 255 / 22%) 0 10%, transparent 42% 74%, rgb(223 244 255 / 28%) 100%);
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+
+      .specimen .scene-hint {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 31px;
+        width: 170px;
+        height: 34px;
+        transform: translateX(-50%);
+        z-index: 2;
+        border-radius: 50%;
+        background: radial-gradient(ellipse at center, rgb(44 149 217 / 24%), transparent 70%);
+        pointer-events: none;
+        animation: platformPulse 2.9s ease-in-out infinite;
+      }
+
+      .platform {
+        position: absolute;
+        left: 50%;
+        bottom: 40px;
+        width: 56%;
+        height: 112px;
+        transform: translateX(-48%);
+        border-radius: 50%;
+        border: 4px solid rgb(117 193 237 / 46%);
+        background: radial-gradient(ellipse at center, rgb(255 255 255 / 70%) 0 33%, rgb(137 202 239 / 18%) 34% 50%, transparent 52%);
+        box-shadow:
+          0 0 0 16px rgb(112 193 238 / 14%),
+          inset 0 0 24px rgb(46 151 220 / 18%),
+          0 18px 26px rgb(48 103 143 / 12%);
+        animation: platformPulse 2.9s ease-in-out infinite;
+      }
+
+      .platform::before,
+      .platform::after {
+        content: "";
+        position: absolute;
+        inset: 16px 22px;
+        border: 2px solid rgb(105 188 234 / 36%);
+        border-radius: 50%;
+      }
+
+      .platform::after {
+        inset: 30px 58px;
+      }
+
+      .nav {
+        position: absolute;
+        top: 53%;
+        z-index: 8;
+        width: 29px;
+        height: 29px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgb(138 190 225 / 30%);
+        border-radius: 50%;
+        background: rgb(246 252 255 / 70%);
+        color: #6aaadd;
+        font-size: 18px;
+        cursor: pointer;
+      }
+
+      .nav.prev {
+        left: 28px;
+      }
+
+      .nav.next {
+        right: 26px;
+      }
+
+      .actions {
+        position: absolute;
+        left: 50%;
+        bottom: 16px;
+        z-index: 9;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        transform: translateX(-50%);
+        padding: 5px 7px;
+        border: 1px solid rgb(98 168 218 / 24%);
+        border-radius: 10px;
+        background: rgb(239 250 255 / 76%);
+        box-shadow: 0 8px 24px rgb(54 127 180 / 10%);
+      }
+
+      .icon-btn,
+      .confirm {
+        height: 27px;
+        border: 1px solid rgb(93 163 213 / 30%);
+        border-radius: 8px;
+        background: rgb(255 255 255 / 62%);
+        color: #4e95cc;
+        font-size: 8px;
+        font-weight: 900;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+      }
+
+      .icon-btn {
+        width: 34px;
+      }
+
+      .confirm {
+        width: 109px;
+        border-color: rgb(45 156 241 / 52%);
+        background: linear-gradient(180deg, #eefaff, #d6efff);
+        color: #2589d3;
+        letter-spacing: 1.4px;
+      }
+
+      .icon-btn:hover,
+      .confirm:hover,
+      .nav:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 7px 18px rgb(31 131 201 / 15%);
+      }
+
+      .profile {
+        display: grid;
+        grid-template-columns: 43px 1fr;
+        align-items: center;
+        gap: 9px;
+        height: 51px;
+        margin-bottom: 19px;
+        padding: 6px;
+        border-radius: 9px;
+        background: rgb(248 253 255 / 78%);
+        box-shadow: inset 0 1px 0 white;
+      }
+
+      .avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #61c4ff, #1b6fb8);
+        display: grid;
+        place-items: center;
+        color: white;
+        font-size: 16px;
+        font-weight: 900;
+      }
+
+      .profile strong {
+        display: block;
+        color: #1e6a9f;
+        font-size: 12px;
+      }
+
+      .profile span {
+        color: #8aaac0;
+        font-size: 7px;
+        font-weight: 800;
+        letter-spacing: 1px;
+      }
+
+      .panel-title {
+        margin: 12px 0 8px;
+        color: #6faad5;
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 2px;
+      }
+
+      .stats {
+        display: grid;
+        gap: 8px;
+      }
+
+      .stat {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        gap: 8px;
+        align-items: center;
+        color: #416d8b;
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 0.4px;
+      }
+
+      .dot {
+        width: 18px;
+        height: 18px;
+        display: grid;
+        place-items: center;
+        border: 1px solid #8cc6ed;
+        border-radius: 50%;
+        color: #2f92d6;
+        font-size: 8px;
+      }
+
+      .meter {
+        height: 4px;
+        margin-top: 3px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #c7e0ef;
+      }
+
+      .meter i {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #72c2f4, var(--accent));
+        transition: width 360ms ease;
+        animation: meterGlow 2.2s ease-in-out infinite;
+      }
+
+      .ability {
+        width: 100%;
+        height: 43px;
+        display: grid;
+        grid-template-columns: 33px 1fr;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 8px;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .ability:hover {
+        transform: translateX(3px);
+      }
+
+      .badge {
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #3a9ee2, #1e77ba);
+        color: white;
+        font-size: 16px;
+        font-weight: 900;
+        box-shadow: 0 4px 10px rgb(36 125 194 / 24%);
+      }
+
+      .ability strong {
+        display: block;
+        color: #2f719e;
+        font-size: 8px;
+        letter-spacing: 1px;
+      }
+
+      .ability span span {
+        color: #83a4bc;
+        font-size: 7px;
+        font-weight: 700;
+      }
+
+      .footer-note {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: 7px;
+        align-items: center;
+        width: calc(100% - 32px);
+        padding: 7px;
+        border-radius: 8px;
+        background: rgb(248 253 255 / 68%);
+        color: #6a9cbd;
+        font-size: 7px;
+        font-weight: 800;
+      }
+
+      .mini {
+        width: 21px;
+        height: 21px;
+        border-radius: 5px;
+        background: #8bc7ee;
+      }
+
+      .toast,
+      .modal {
+        position: absolute;
+        z-index: 20;
+        border: 1px solid rgb(45 156 241 / 30%);
+        background: rgb(246 252 255 / 90%);
+        color: #1f6fa8;
+        box-shadow: 0 12px 24px rgb(40 117 176 / 13%);
+      }
+
+      .toast {
+        left: 50%;
+        top: 26px;
+        min-width: 210px;
+        padding: 10px 14px;
+        border-radius: 9px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+        text-align: center;
+        opacity: 0;
+        transform: translate(-50%, -10px);
+        pointer-events: none;
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      .modal {
+        left: 50%;
+        bottom: 74px;
+        width: 260px;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 10px;
+        opacity: 0;
+        transform: translate(-50%, 18px) scale(0.98);
+        pointer-events: none;
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .modal.open {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+        pointer-events: auto;
+      }
+
+      .modal strong {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--accent-dark);
+        font-size: 12px;
+        letter-spacing: 1px;
+      }
+
+      .is-paused .specimen,
+      .is-paused .specimen .scene-hint,
+      .is-paused .platform,
+      .is-paused .meter i {
+        animation-play-state: paused !important;
+      }
+
+      .is-locked .specimen {
+        filter: saturate(0.75) contrast(1.08);
+      }
+
+      @keyframes platformPulse {
+        0%, 100% { box-shadow: 0 0 0 16px rgb(112 193 238 / 14%), inset 0 0 24px rgb(46 151 220 / 18%), 0 18px 26px rgb(48 103 143 / 12%); }
+        50% { box-shadow: 0 0 0 25px rgb(112 193 238 / 9%), inset 0 0 34px rgb(46 151 220 / 24%), 0 22px 30px rgb(48 103 143 / 16%); }
+      }
+
+      @keyframes meterGlow {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.22); }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell" aria-label="Pioneers character management interface">
+      <aside class="left">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div>PIONEERS<small>CONNECTED SPECIES</small></div>
+        </div>
+
+        <div class="creature-list">
+          <button class="card active" data-index="0" aria-label="Select Azure-07">
+            <span class="thumb">A</span>
+            <span class="meta"><strong>AZURE-07</strong><span>RECON</span></span>
+            <span class="tag">ONLINE</span>
+          </button>
+          <button class="card" data-index="1" aria-label="Select Bront">
+            <span class="thumb" style="background:linear-gradient(145deg,#f1f7fb,#cfe2ee)">B</span>
+            <span class="meta"><strong>BRONT</strong><span>VANGUARD</span></span>
+            <span></span>
+          </button>
+          <button class="card" data-index="2" aria-label="Select Nova-63">
+            <span class="thumb" style="background:linear-gradient(145deg,#fff8cf,#f4d653)">N</span>
+            <span class="meta"><strong>NOVA-63</strong><span>SUPPORT</span></span>
+            <span></span>
+          </button>
+          <button class="card" data-index="3" aria-label="Select Bolt">
+            <span class="thumb" style="background:linear-gradient(145deg,#f5fbff,#c5d9e8)">T</span>
+            <span class="meta"><strong>BOLT</strong><span>INFILTRATOR</span></span>
+            <span></span>
+          </button>
+          <button class="card" data-index="4" aria-label="Select Lyra">
+            <span class="thumb" style="background:linear-gradient(145deg,#ffe7d5,#ef8f65)">L</span>
+            <span class="meta"><strong>LYRA</strong><span>STRATEGIST</span></span>
+            <span></span>
+          </button>
+        </div>
+
+        <div class="search">
+          <span>SCAN</span>
+          <span>SCAN SPECIES</span>
+          <span class="bar"></span>
+          <span>65/128</span>
+        </div>
+      </aside>
+
+      <section class="stage">
+        <div class="title">
+          <h1>AZURE-07</h1>
+          <div class="role">RECON</div>
+          <p>"User alert. One certainty."</p>
+        </div>
+
+        <div class="specimen" aria-label="Interactive specimen" role="button" tabindex="0">
+          <canvas id="bird-canvas" aria-label="3D interactive bird model"></canvas>
+          <span class="scene-hint"></span>
+        </div>
+        <div class="platform"></div>
+        <button class="nav prev" data-action="prev" aria-label="Previous">&lt;</button>
+        <button class="nav next" data-action="next" aria-label="Next">&gt;</button>
+
+        <div class="actions" aria-label="Specimen actions">
+          <button class="icon-btn" data-action="lock" aria-label="Lock">LOCK</button>
+          <button class="icon-btn" data-action="pause" aria-label="Pause">II</button>
+          <button class="confirm" data-action="confirm">CONFIRM</button>
+          <button class="icon-btn" data-action="message" aria-label="Message">MSG</button>
+          <button class="icon-btn" data-action="link" aria-label="Link">LINK</button>
+        </div>
+
+        <div class="toast" aria-live="polite"></div>
+        <div class="modal" role="dialog" aria-label="Unit message">
+          <strong>MISSION SIGNAL</strong>
+          <span class="modal-copy">Azure-07 is tracking motion around the perimeter. Tap the bird to trigger a response.</span>
+        </div>
+      </section>
+
+      <aside class="right">
+        <div class="profile">
+          <div class="avatar">K</div>
+          <div><strong>Keira</strong><span>TACTICAL LEAD</span></div>
+        </div>
+
+        <div class="panel-title">UNIT STATS</div>
+        <div class="stats">
+          <div class="stat"><span class="dot">M</span><span>Mobility<div class="meter"><i style="width: 76%"></i></div></span></div>
+          <div class="stat"><span class="dot">P</span><span>Precision<div class="meter"><i style="width: 91%"></i></div></span></div>
+          <div class="stat"><span class="dot">S</span><span>Stealth<div class="meter"><i style="width: 63%"></i></div></span></div>
+          <div class="stat"><span class="dot">A</span><span>Awareness<div class="meter"><i style="width: 84%"></i></div></span></div>
+          <div class="stat"><span class="dot">!</span><span>Integrity<div class="meter"><i style="width: 58%"></i></div></span></div>
+        </div>
+
+        <div class="panel-title">ABILITIES</div>
+        <button class="ability" data-ability="0">
+          <span class="badge">+</span>
+          <span><strong>SONIC PULSE</strong><span>Disrupts nearby signals</span></span>
+        </button>
+        <button class="ability" data-ability="1">
+          <span class="badge">*</span>
+          <span><strong>SKYLINE TRACE</strong><span>Maps hidden movement</span></span>
+        </button>
+        <button class="ability" data-ability="2">
+          <span class="badge">^</span>
+          <span><strong>EVADE</strong><span>Short burst reposition</span></span>
+        </button>
+
+        <div class="footer-note">
+          <span class="mini"></span>
+          <span class="footer-copy">Azure-07 sync ready<br />awaiting confirmation</span>
+        </div>
+      </aside>
+    </main>
+
+    <script src="three.min.js"></script>
+    <script src="bird-scene.js"></script>
+    <script>
+      const shell = document.querySelector(".shell");
+      const specimen = document.querySelector(".specimen");
+      const title = document.querySelector(".title h1");
+      const role = document.querySelector(".title .role");
+      const quote = document.querySelector(".title p");
+      const cards = [...document.querySelectorAll(".card")];
+      const meters = [...document.querySelectorAll(".meter i")];
+      const abilities = [...document.querySelectorAll(".ability")];
+      const footerCopy = document.querySelector(".footer-copy");
+      const modal = document.querySelector(".modal");
+      const modalCopy = document.querySelector(".modal-copy");
+      const toast = document.querySelector(".toast");
+      const pauseButton = document.querySelector('[data-action="pause"]');
+      const lockButton = document.querySelector('[data-action="lock"]');
+      const confirmButton = document.querySelector('[data-action="confirm"]');
+      let selectedIndex = 0;
+      let locked = false;
+      let paused = false;
+      let toastTimer;
+
+      const units = [
+        {
+          name: "AZURE-07",
+          role: "RECON",
+          quote: '"User alert. One certainty."',
+          stats: [76, 91, 63, 84, 58],
+          abilities: [
+            ["SONIC PULSE", "Disrupts nearby signals"],
+            ["SKYLINE TRACE", "Maps hidden movement"],
+            ["EVADE", "Short burst reposition"],
+          ],
+          note: "Azure-07 sync ready<br />awaiting confirmation",
+          tint: "#2d9cf1",
+        },
+        {
+          name: "BRONT",
+          role: "VANGUARD",
+          quote: '"Shield line holding."',
+          stats: [46, 54, 38, 61, 96],
+          abilities: [
+            ["BARRIER", "Creates a forward guard"],
+            ["BRACE", "Reduces incoming damage"],
+            ["CHARGE", "Breaks hostile formation"],
+          ],
+          note: "Bront standing by<br />defense protocol armed",
+          tint: "#1d6f9f",
+        },
+        {
+          name: "NOVA-63",
+          role: "SUPPORT",
+          quote: '"Signal clean. Field stable."',
+          stats: [52, 68, 57, 79, 86],
+          abilities: [
+            ["REPAIR WAVE", "Restores nearby allies"],
+            ["LIGHT FIELD", "Boosts sensor clarity"],
+            ["ANCHOR", "Stabilizes the platform"],
+          ],
+          note: "Nova-63 linked<br />support routines online",
+          tint: "#d9a71f",
+        },
+        {
+          name: "BOLT",
+          role: "INFILTRATOR",
+          quote: '"In and out before echo."',
+          stats: [94, 77, 92, 69, 42],
+          abilities: [
+            ["PHASE STEP", "Short blink movement"],
+            ["SILENT MARK", "Tags vulnerable targets"],
+            ["OVERCLOCK", "Rapid action window"],
+          ],
+          note: "Bolt route mapped<br />stealth vector open",
+          tint: "#235d8e",
+        },
+        {
+          name: "LYRA",
+          role: "STRATEGIST",
+          quote: '"Every move has a reply."',
+          stats: [57, 86, 66, 95, 64],
+          abilities: [
+            ["TACTIC GRID", "Predicts enemy pathing"],
+            ["RALLY", "Improves unit timing"],
+            ["COUNTERPLAY", "Punishes exposed moves"],
+          ],
+          note: "Lyra plan loaded<br />strategy board synced",
+          tint: "#ef8f65",
+        },
+      ];
+
+      const fitShell = () => {
+        const scale = Math.min(window.innerWidth / 920, window.innerHeight / 518);
+        shell.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      };
+
+      const showToast = (message) => {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 1600);
+      };
+
+      const reactBird = () => {
+        specimen.classList.remove("is-reacting");
+        void specimen.offsetWidth;
+        specimen.classList.add("is-reacting");
+        window.birdScene?.react();
+      };
+
+      const renderUnit = (index) => {
+        selectedIndex = (index + units.length) % units.length;
+        const unit = units[selectedIndex];
+        cards.forEach((card, i) => {
+          card.classList.toggle("active", i === selectedIndex);
+          const slot = card.children[2];
+          if (i === selectedIndex) {
+            slot.className = "tag";
+            slot.textContent = "ONLINE";
+          } else {
+            slot.className = "";
+            slot.textContent = "";
+          }
+        });
+        title.textContent = unit.name;
+        role.textContent = unit.role;
+        quote.textContent = unit.quote;
+        meters.forEach((meter, i) => {
+          meter.style.width = `${unit.stats[i]}%`;
+        });
+        abilities.forEach((ability, i) => {
+          const [name, copy] = unit.abilities[i];
+          ability.querySelector("strong").textContent = name;
+          ability.querySelector("span span").textContent = copy;
+        });
+        footerCopy.innerHTML = unit.note;
+        shell.style.setProperty("--accent", unit.tint);
+        shell.style.setProperty("--accent-dark", unit.tint);
+        window.birdScene?.setUnit(unit);
+        confirmButton.textContent = "CONFIRM";
+        modal.classList.remove("open");
+        reactBird();
+        showToast(`${unit.name} selected`);
+      };
+
+      const togglePause = () => {
+        paused = !paused;
+        shell.classList.toggle("is-paused", paused);
+        window.birdScene?.setPaused(paused);
+        pauseButton.textContent = paused ? "PLAY" : "II";
+        showToast(paused ? "Motion paused" : "Motion resumed");
+      };
+
+      const toggleLock = () => {
+        locked = !locked;
+        shell.classList.toggle("is-locked", locked);
+        window.birdScene?.setLocked(locked);
+        lockButton.textContent = locked ? "OPEN" : "LOCK";
+        showToast(locked ? "Unit locked" : "Unit unlocked");
+      };
+
+      fitShell();
+      window.addEventListener("resize", fitShell);
+      cards.forEach((card) => card.addEventListener("click", () => renderUnit(Number(card.dataset.index))));
+      document.querySelector('[data-action="prev"]').addEventListener("click", () => renderUnit(selectedIndex - 1));
+      document.querySelector('[data-action="next"]').addEventListener("click", () => renderUnit(selectedIndex + 1));
+      lockButton.addEventListener("click", toggleLock);
+      pauseButton.addEventListener("click", togglePause);
+      confirmButton.addEventListener("click", () => {
+        const unit = units[selectedIndex];
+        confirmButton.textContent = "SYNCED";
+        footerCopy.innerHTML = `${unit.name} confirmed<br />mission link active`;
+        reactBird();
+        showToast(`${unit.name} confirmed`);
+      });
+      document.querySelector('[data-action="message"]').addEventListener("click", () => {
+        const unit = units[selectedIndex];
+        modalCopy.textContent = `${unit.name} reports: ${unit.quote.replaceAll('"', "")} Current role is ${unit.role}.`;
+        modal.classList.toggle("open");
+        reactBird();
+      });
+      document.querySelector('[data-action="link"]').addEventListener("click", async () => {
+        const text = `${units[selectedIndex].name} / ${units[selectedIndex].role}`;
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast("Unit code copied");
+        } catch {
+          showToast(text);
+        }
+        reactBird();
+      });
+      abilities.forEach((ability, i) => {
+        ability.addEventListener("click", () => {
+          const [name, copy] = units[selectedIndex].abilities[i];
+          showToast(`${name}: ${copy}`);
+          reactBird();
+        });
+      });
+      specimen.addEventListener("click", () => {
+        reactBird();
+        showToast(`${units[selectedIndex].name} responded`);
+      });
+      specimen.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          reactBird();
+          showToast(`${units[selectedIndex].name} responded`);
+        }
+      });
+      shell.dataset.uiReady = "true";
+    </script>
+  </body>
+</html>
+
